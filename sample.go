@@ -38,7 +38,7 @@ const (
     Vote
 )
 
-var global_state = CreatePoll;
+var global_state = Registration;
 
 
 func helloHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
@@ -49,43 +49,43 @@ func helloHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
     })
     b.SendMessage(ctx, &bot.SendMessageParams{
         ChatID:    update.Message.Chat.ID,
-        Text:      "Please, register: , *" + bot.EscapeMarkdown(update.Message.From.FirstName) + "*",
+        Text:      "Please, register: *" + bot.EscapeMarkdown(update.Message.From.FirstName) + "*",
         ParseMode: models.ParseModeMarkdown,
     })
 
     kb := &models.InlineKeyboardMarkup{
         InlineKeyboard: [][]models.InlineKeyboardButton{
             {
-                {Text: "Button 1", CallbackData: "button_1"},
-                {Text: "Button 2", CallbackData: "button_2"},
-            }, {
-                {Text: "Button 3", CallbackData: "button_3"},
+                {Text: "Yes", CallbackData: "yes"},
+                {Text: "No", CallbackData: "no"},
             },
         },
     }
 
     b.SendMessage(ctx, &bot.SendMessageParams{
         ChatID:      update.Message.Chat.ID,
-        Text:        "Click by button",
+        Text:        "Do you already have a Nil-wallet?",
         ReplyMarkup: kb,
     })
-
 }
 
 func handler(ctx context.Context, b *bot.Bot, update *models.Update) {
-    fmt.Println("handler")
+    fmt.Println("handler begin")
     
-
-    b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
-        CallbackQueryID: update.CallbackQuery.ID,
-        ShowAlert:       true,
-    })
-
-    b.SendMessage(ctx, &bot.SendMessageParams{
-        ChatID: update.CallbackQuery.Message.Message.Chat.ID,
-        Text:   fmt.Sprintf("Selected options: %v", update.CallbackQuery.Data),
-    })
-
-    fmt.Println(update.CallbackQuery.Data)
-    
+    if global_state == Registration {
+      b.AnswerCallbackQuery(ctx, &bot.AnswerCallbackQueryParams{
+          CallbackQueryID: update.CallbackQuery.ID,
+          ShowAlert:       true,
+      })
+      b.SendMessage(ctx, &bot.SendMessageParams{
+          ChatID: update.CallbackQuery.Message.Message.Chat.ID,
+          Text:   fmt.Sprintf("Selected options: %v", update.CallbackQuery.Data),
+      })
+    } else {
+      b.SendMessage(ctx, &bot.SendMessageParams{
+          ChatID: update.CallbackQuery.Message.Message.Chat.ID,
+          Text:   fmt.Sprintf("I am confused :("),
+      })
+    }
+    fmt.Println("handler end")
 }
