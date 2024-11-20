@@ -35,6 +35,7 @@ type BotState int
 const (
     Registration BotState = iota
     CreatePoll
+    EnterWalletID
     Vote
 )
 
@@ -69,6 +70,13 @@ func helloHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
     })
 }
 
+func send_error(ctx context.Context, b *bot.Bot, id int64) {
+      b.SendMessage(ctx, &bot.SendMessageParams{
+          ChatID: id,
+          Text:   fmt.Sprintf("I am confused :("),
+      })
+}
+
 func handler(ctx context.Context, b *bot.Bot, update *models.Update) {
     fmt.Println("handler begin")
     
@@ -81,11 +89,24 @@ func handler(ctx context.Context, b *bot.Bot, update *models.Update) {
           ChatID: update.CallbackQuery.Message.Message.Chat.ID,
           Text:   fmt.Sprintf("Selected options: %v", update.CallbackQuery.Data),
       })
-    } else {
-      b.SendMessage(ctx, &bot.SendMessageParams{
-          ChatID: update.CallbackQuery.Message.Message.Chat.ID,
-          Text:   fmt.Sprintf("I am confused :("),
-      })
+      if update.CallbackQuery.Data == "yes" {
+        b.SendMessage(ctx, &bot.SendMessageParams{
+            ChatID: update.CallbackQuery.Message.Message.Chat.ID,
+            Text:   "Your wallet ID?",
+        })
+        global_state = EnterWalletID
+      } else {
+        // TODO
+      }
+    }else if global_state == EnterWalletID {
+        if update.Message == nil {
+          send_error(ctx, b, update.CallbackQuery.Message.Message.Chat.ID);
+          return
+        }
+        b.SendMessage(ctx, &bot.SendMessageParams{
+            ChatID: update.Message.Chat.ID,
+            Text:   fmt.Sprintf("Your wallet ID: %v", update.Message.Text),
+        })
     }
     fmt.Println("handler end")
 }
